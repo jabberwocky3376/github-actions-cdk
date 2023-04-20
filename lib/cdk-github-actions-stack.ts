@@ -15,7 +15,7 @@ export class CdkGithubActionsStack extends cdk.Stack {
 
     new apigw.LambdaRestApi(this, 'Endpoint', {
       handler: hello,
-      endpointTypes: [apigw.EndpointType.EDGE]
+      endpointTypes: [apigw.EndpointType.REGIONAL]
     })
 
     // example resource
