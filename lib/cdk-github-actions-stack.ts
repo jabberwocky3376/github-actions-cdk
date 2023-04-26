@@ -56,7 +56,7 @@ export class CdkGithubActionsStack extends cdk.Stack {
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ],
-        resources: [userTable.tableArn],
+        resources: ['*'],
       })
     );
 
