@@ -52,6 +52,9 @@ export class CdkGithubActionsStack extends cdk.Stack {
           "dynamodb:PutItem",
           "dynamodb:UpdateItem",
           "dynamodb:DeleteItem",
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
         ],
         resources: [userTable.tableArn],
       })
