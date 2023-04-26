@@ -1,19 +1,61 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import { env } from 'process';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// 環境変数ファイル読込
+const environment = env.NODE_ENV || 'development';
+dotenv.config({ path: path.join(__dirname, `../env/.env.${environment}`) });
+
+/**
+ * コンフィグ用インターフェース定義
+ */
+export interface EnlWebapiConfig {
+  /** ユーザーテーブル名 */
+  USER_TABLE_NAME: string;
+}
 
 export class CdkGithubActionsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // Lambda関数
+    const config: EnlWebapiConfig = {
+      USER_TABLE_NAME: env.USER_TABLE_NAME ?? "",
+    }
+
+    // DynamoDB
+    const userTable = new cdk.aws_dynamodb.Table(this, "UserTableForCdkGithubActions", {
+      partitionKey: { name: "id", type: cdk.aws_dynamodb.AttributeType.STRING },
+      tableName: config.USER_TABLE_NAME,
+      removalPolicy: cdk.RemovalPolicy.DESTROY
+    });
+
+    // Lambda
     const hello = new cdk.aws_lambda_nodejs.NodejsFunction(
       this,
-      "ramenGuFn",
+      "hello",
       {
         runtime: cdk.aws_lambda.Runtime.NODEJS_18_X,
         entry: "src/lambda/hello.ts",
+        environment: {
+          USER_TABLE_NAME: config.USER_TABLE_NAME
+        }
       }
     )
+    // LambdaにDynamoDBのCRUD操作権限を付与
+    hello.addToRolePolicy(
+      new cdk.aws_iam.PolicyStatement({
+        effect: cdk.aws_iam.Effect.ALLOW,
+        actions: [
+          "dynamodb:Scan",
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+        ],
+        resources: [userTable.tableArn],
+      })
+    );
 
     // APIGW
     const api = new cdk.aws_apigateway.RestApi(this, "Endpoint", {
@@ -31,20 +73,5 @@ export class CdkGithubActionsStack extends cdk.Stack {
       defaultIntegration: new cdk.aws_apigateway.LambdaIntegration(hello),
     })
 
-    // const hello = new lambda.Function(this, 'HelloHandler', {
-    //   runtime: lambda.Runtime.NODEJS_14_X,
-    //   code: lambda.Code.fromAsset('src/'),
-    //   handler: 'lambda/hello.handler'
-    // })
-
-    // new apigw.LambdaRestApi(this, 'Endpoint', {
-    //   handler: hello,
-    //   endpointTypes: [apigw.EndpointType.EDGE]
-    // })
-
-    // example resource
-    // const queue = new sqs.Queue(this, 'CdkGithubActionsQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
   }
 }

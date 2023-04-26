@@ -7,8 +7,14 @@ on:
   pull_request:
 jobs:
   aws_cdk:
+    env:
+      # NODE_ENV: ${{github.head_ref}}
+      NODE_ENV: development
     runs-on: ubuntu-latest
     steps:
+      - name: environment check
+        run: echo $NODE_ENV
+
       - name: Checkout
         uses: actions/checkout@v1
 
