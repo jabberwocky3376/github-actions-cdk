@@ -2,20 +2,25 @@ import serverlessExpress from "@vendia/serverless-express"
 import express from "express"
 import cors from "cors"
 import { message } from "../model/message";
+import { getItem } from "../functions/getUsersFunction";
 
 const app = express()
 app.use(cors())
 app.use(express.json())
 
-app.get("hello", (event, res) => {
+
+/**
+ * GET: /users ユーザー一覧取得
+ */
+app.get("/users", (_, res) => {
   res.status(200).send({
-    message: "" + message(event.path)
+    message: getItem()
   })
 })
 
-app.get('/bye', (_, res) => {
+app.get('/message', (req, res) => {
   res.status(200).send({
-    message: 'byebye',
+    message: "" + message(req.path)
   })
 })
 
