@@ -32,19 +32,19 @@ export class CdkGithubActionsStack extends cdk.Stack {
     });
 
     // Lambda
-    const hello = new cdk.aws_lambda_nodejs.NodejsFunction(
+    const handler = new cdk.aws_lambda_nodejs.NodejsFunction(
       this,
-      "hello",
+      "handler",
       {
         runtime: cdk.aws_lambda.Runtime.NODEJS_18_X,
-        entry: "src/lambda/hello.ts",
+        entry: "src/lambda/handler.ts",
         environment: {
           USER_TABLE_NAME: config.USER_TABLE_NAME
         }
       }
     )
     // LambdaにDynamoDBのCRUD操作権限を付与
-    hello.addToRolePolicy(
+    handler.addToRolePolicy(
       new cdk.aws_iam.PolicyStatement({
         effect: cdk.aws_iam.Effect.ALLOW,
         actions: [
@@ -73,7 +73,7 @@ export class CdkGithubActionsStack extends cdk.Stack {
       },
     })
     api.root.addProxy({
-      defaultIntegration: new cdk.aws_apigateway.LambdaIntegration(hello),
+      defaultIntegration: new cdk.aws_apigateway.LambdaIntegration(handler),
     })
 
   }
