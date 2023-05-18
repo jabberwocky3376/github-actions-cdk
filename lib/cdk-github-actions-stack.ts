@@ -21,12 +21,20 @@ export class CdkGithubActionsStack extends cdk.Stack {
     super(scope, id, props);
 
     const config: EnlWebapiConfig = {
-      USER_TABLE_NAME: env.USER_TABLE_NAME ?? "",
+      USER_TABLE_NAME: process.env.USER_TABLE_NAME ?? "",
     }
 
     // DynamoDB
-    const userTable = new cdk.aws_dynamodb.Table(this, "UserTableForCdkGithubActions", {
-      partitionKey: { name: "id", type: cdk.aws_dynamodb.AttributeType.STRING },
+    new cdk.aws_dynamodb.Table(this, "UserTableForCdkGithubActions", {
+      partitionKey: {
+        name: "id",
+        type: cdk.aws_dynamodb.AttributeType.STRING
+      },
+      sortKey: {
+        name: 'name',
+        type: cdk.aws_dynamodb.AttributeType.STRING,
+      },
+      billingMode: cdk.aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       tableName: config.USER_TABLE_NAME,
       removalPolicy: cdk.RemovalPolicy.DESTROY
     });
