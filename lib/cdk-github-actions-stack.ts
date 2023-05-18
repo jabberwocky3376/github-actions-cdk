@@ -21,7 +21,7 @@ export class CdkGithubActionsStack extends cdk.Stack {
     super(scope, id, props);
 
     const config: EnlWebapiConfig = {
-      USER_TABLE_NAME: env.USER_TABLE_NAME ?? "",
+      USER_TABLE_NAME: process.env.USER_TABLE_NAME ?? "",
     }
 
     // DynamoDB
