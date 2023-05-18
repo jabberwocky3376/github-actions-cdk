@@ -25,8 +25,16 @@ export class CdkGithubActionsStack extends cdk.Stack {
     }
 
     // DynamoDB
-    const userTable = new cdk.aws_dynamodb.Table(this, "UserTableForCdkGithubActions", {
-      partitionKey: { name: "id", type: cdk.aws_dynamodb.AttributeType.STRING },
+    new cdk.aws_dynamodb.Table(this, "UserTableForCdkGithubActions", {
+      partitionKey: {
+        name: "id",
+        type: cdk.aws_dynamodb.AttributeType.STRING
+      },
+      sortKey: {
+        name: 'name',
+        type: cdk.aws_dynamodb.AttributeType.STRING,
+      },
+      billingMode: cdk.aws_dynamodb.BillingMode.PAY_PER_REQUEST,
       tableName: config.USER_TABLE_NAME,
       removalPolicy: cdk.RemovalPolicy.DESTROY
     });
