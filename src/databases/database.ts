@@ -1,5 +1,5 @@
 import { DynamoDBClient, DynamoDBClientConfig } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb'
+import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
 import { UserModel } from "../models/user"
 import { CustomException } from "../exceptions/customException"
 
@@ -23,8 +23,7 @@ export class DbModel {
         this.table = table
     }
 
-    async getItem(table: string, partitionKeyName: string, partitionKey: string, sortKeyName: string | undefined, sortKey: string | undefined) {
-
+    async getItem(table: string, partitionKeyName: string, partitionKey: string, sortKeyName: string | undefined, sortKey: string | undefined): Promise<Record<string, any> | undefined> {
         // PK
         const key: { [key: string]: string } = {}
         key[partitionKeyName] = partitionKey
@@ -43,6 +42,23 @@ export class DbModel {
             const res = await this.documentClient.send(command)
             return res.Item
         } catch (e) {
+            console.error(e)
+            throw new CustomException(500, "DB Error")
+        }
+    }
+
+    async putItem(table: string, item: object): Promise<void> {
+
+        const command = new PutCommand({
+            TableName: table,
+            Item: item
+        })
+        await this.documentClient.send(command)
+
+        try {
+            await this.documentClient.send(command)
+        } catch (e) {
+            console.error(e)
             throw new CustomException(500, "DB Error")
         }
     }
@@ -63,5 +79,10 @@ export class User extends DbModel {
 
         const userEntity: UserModel = { id: result["id"], name: result["name"], type: result["type"] }
         return userEntity
+    }
+
+    async set(id: string, name: string, type: string): Promise<void> {
+        const userEntity: UserModel = { id: id, name: name, type: type }
+        await this.putItem(this.table, userEntity)
     }
 }
