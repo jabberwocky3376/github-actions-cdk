@@ -57,6 +57,7 @@ export class CdkGithubActionsStack extends cdk.Stack {
         effect: cdk.aws_iam.Effect.ALLOW,
         actions: [
           "dynamodb:Scan",
+          "dynamodb:GetItem",
           "dynamodb:PutItem",
           "dynamodb:UpdateItem",
           "dynamodb:DeleteItem",

@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import bodyParser from 'body-parser';
 import { getUser } from "../functions/getUser";
+import { setUser } from "../functions/setUser";
 import { CustomException } from "../exceptions/customException"
 
 export const app = express()
@@ -14,7 +15,6 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 router.get('/user', (req, res) => {
     try {
-
         if (!req.query.id || !req.query.name) {
             res.status(400).json({
                 error: "Client Error"
@@ -26,6 +26,34 @@ router.get('/user', (req, res) => {
                 res.status(200).json({
                     message: result
                 })
+            })
+            .catch(e => {
+                if (e instanceof CustomException) {
+                    throw e;
+                } else {
+                    throw Error("Unexpected Error");
+                }
+            })
+    } catch (e) {
+        if (e instanceof CustomException) {
+            res.status(e.status).json({ msg: e.message })
+        } else {
+            res.status(500).json({ msg: "Unexpected Error" })
+        }
+    }
+});
+
+router.put('/user', (req, res) => {
+    try {
+        if (!req.body || !req.body.id || !req.body.name || !req.body.type) {
+            res.status(400).json({
+                error: "Client Error"
+            });
+        }
+
+        setUser(req.body.id, req.body.name, req.body.type)
+            .then(result => {
+                res.status(201).json({})
             })
             .catch(e => {
                 if (e instanceof CustomException) {
