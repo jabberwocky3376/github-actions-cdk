@@ -1,6 +1,5 @@
 import { DynamoDBClient, DynamoDBClientConfig } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb'
-import { UserModel } from "../models/user"
+import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb'
 import { CustomException } from "../exceptions/customException"
 
 export class DbModel {
@@ -23,7 +22,7 @@ export class DbModel {
         this.table = table
     }
 
-    async getItem(table: string, partitionKeyName: string, partitionKey: string, sortKeyName: string | undefined, sortKey: string | undefined): Promise<Record<string, any> | undefined> {
+    async getItem(table: string, partitionKeyName: string, partitionKey: string, sortKeyName?: string | undefined, sortKey?: string | undefined): Promise<Record<string, any> | undefined> {
         // PK
         const key: { [key: string]: string } = {}
         key[partitionKeyName] = partitionKey
@@ -39,8 +38,25 @@ export class DbModel {
         })
 
         try {
-            const res = await this.documentClient.send(command)
-            return res.Item
+            const res = (await this.documentClient.send(command)).Item ?? undefined
+            return res
+        } catch (e) {
+            console.error(e)
+            throw new CustomException(500, "DB Error")
+        }
+    }
+
+    async getItems(table: string, partitionKeyName: string, partitionKey: string) {
+        const command = new QueryCommand({
+            TableName: table,
+            ExpressionAttributeNames: { "#PK": partitionKeyName, },
+            ExpressionAttributeValues: { ":PK": partitionKey }, //
+            KeyConditionExpression: "#PK = :PK" // 条件
+        });
+
+        try {
+            const res = (await this.documentClient.send(command)).Items ?? [];
+            return res;
         } catch (e) {
             console.error(e)
             throw new CustomException(500, "DB Error")
@@ -61,28 +77,5 @@ export class DbModel {
             console.error(e)
             throw new CustomException(500, "DB Error")
         }
-    }
-}
-
-export class User extends DbModel {
-
-    constructor() {
-        super("id", "name", process.env.USER_TABLE_NAME as string)
-    }
-
-    async get(id: string, name: string): Promise<UserModel | undefined> {
-        const result = await this.getItem(this.table, "id", id, "name", name)
-
-        if (result === undefined || result["id"] === undefined) {
-            return undefined
-        }
-
-        const userEntity: UserModel = { id: result["id"], name: result["name"], type: result["type"] }
-        return userEntity
-    }
-
-    async set(id: string, name: string, type: string): Promise<void> {
-        const userEntity: UserModel = { id: id, name: name, type: type }
-        await this.putItem(this.table, userEntity)
     }
 }

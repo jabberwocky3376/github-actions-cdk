@@ -11,7 +11,7 @@ async function getItem() {
             TableName: 'Users',
             Key: {
                 id: { S: '1' },
-                name: { S: 'john' },
+                name: { S: 'bill' },
             }
         })
         const output = await dbClient.send(command)

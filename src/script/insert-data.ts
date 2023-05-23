@@ -11,9 +11,9 @@ async function putItem() {
             TableName: 'Users',
             Item: {
                 id: { S: '1' },
-                name: { S: 'john' },
-                type: { S: 'men' },
-            },
+                name: { S: 'sunny' },
+                type: { S: 'women' },
+            }
         })
         const output = await dbClient.send(command)
         console.log('SUCCESS (put item):', output)

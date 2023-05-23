@@ -14,6 +14,7 @@ dotenv.config({ path: path.join(__dirname, `../env/.env.${environment}`) });
 export interface EnlWebapiConfig {
   /** ユーザーテーブル名 */
   USER_TABLE_NAME: string;
+  NODE_ENV: string;
 }
 
 export class CdkGithubActionsStack extends cdk.Stack {
@@ -22,6 +23,7 @@ export class CdkGithubActionsStack extends cdk.Stack {
 
     const config: EnlWebapiConfig = {
       USER_TABLE_NAME: process.env.USER_TABLE_NAME ?? "",
+      NODE_ENV: process.env.NODE_ENV ?? "",
     }
 
     // DynamoDB
@@ -47,6 +49,7 @@ export class CdkGithubActionsStack extends cdk.Stack {
         runtime: cdk.aws_lambda.Runtime.NODEJS_18_X,
         entry: "src/lambda/handler.ts",
         environment: {
+          NODE_ENV: config.USER_TABLE_NAME,
           USER_TABLE_NAME: config.USER_TABLE_NAME
         }
       }
